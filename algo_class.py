@@ -21,11 +21,12 @@ kite.set_access_token(data["access_token"])
 
 class ema_algo():
     def __init__(self) -> None:
-        self.trade_buffer = 10
+
+        self.trade_buffer = config["trade_buffer"]
         self.trade_flag = False
         self.buy_level = 0
         self.sell_level = 0
-        self.position = 0
+        self.position = config["position"]
     def send_alert(self,alert_type=None):
         send_email(alert_type)
 
@@ -56,11 +57,19 @@ class ema_algo():
             trade_logger(datetime.datetime.now(),"short-entry",self.sell_level)
             self.send_alert(alert_type = 'initial_short_entry')
             if config["real_trade_flag"]:
-                kite.place_order(**updated_params)
+                order_id = kite.place_order(exchange="NFO",
+                                            tradingsymbol="NIFTY18FEBFUT",
+                                            transaction_type="BUY",
+                                            quantity="75",
+                                            product="NRML",
+                                            order_type="LIMIT",
+                                            validity="DAY",
+                                            price = "10366",
+                                            variety="regular")
             self.position=-2
 
-    def zerodha_order():
-        kiteconnect.place_order(**updated_params)
+    def get_nifty_fut_symbol():
+        instruments = kite.instruments(exchange = "NFO")
 
     def run_every_minute(self): 
         #get current spx data

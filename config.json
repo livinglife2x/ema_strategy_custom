@@ -1,1 +1,3 @@
-{"real_trade_flag":false}
+{"real_trade_flag":false,
+"position":0,
+"trade_buffer":10}
