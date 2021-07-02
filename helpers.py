@@ -78,3 +78,7 @@ def trade_logger(*args):
     with open("trade_log.csv","a+") as file:
         file.write(str(msg))
     return True
+
+def get_nifty_fut_symbol(self):
+    #instruments = kite.instruments(exchange = "NFO")
+    pass

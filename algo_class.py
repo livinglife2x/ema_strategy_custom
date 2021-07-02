@@ -1,31 +1,37 @@
+
+#test signals first
+#fetch instrument token
+
+"""
+order_id = kite.place_order(exchange="NFO",
+                                        tradingsymbol="NIFTY18FEBFUT",
+                                        transaction_type="BUY",
+                                        quantity="75",
+                                        product="NRML",
+                                        order_type="LIMIT",
+                                        validity="DAY",
+                                        price = "10366",
+                                        variety="regular")
+order_history(order_id)
 """
 
-get nifty historical data
-calculate ema high -10
-
-get nifty spot data -every minute
-pretty much like ema strategy
-send email/sms using aws services
-pending - make a call when alert triggered
-#integrate with bandiwdth api
-#integrating with email and sms for now 
-"""
 from helpers import get_historical_data,get_nifty_spot_data,get_trade_levels,send_email,trade_logger,config
 import datetime
 import sys
-import logging
+import json
 from kiteconnect import KiteConnect
-kite = KiteConnect(api_key="your_api_key")
-data = kite.generate_session("request_token_here", api_secret="your_secret")
-kite.set_access_token(data["access_token"])
+#kite = KiteConnect(api_key="your_api_key")
+#data = kite.generate_session("request_token_here", api_secret="your_secret")
+#kite.set_access_token(data["access_token"])
 
 class ema_algo():
     def __init__(self) -> None:
-
         self.trade_buffer = config["trade_buffer"]
         self.trade_flag = False
         self.buy_level = 0
         self.sell_level = 0
+        self.trade_price = 0
+        self.lot_1_exit_buffer = config["first_lot_exit"]
         self.position = config["position"]
     def send_alert(self,alert_type=None):
         send_email(alert_type)
@@ -37,39 +43,51 @@ class ema_algo():
             trade_levels = get_trade_levels(hist_data,self.trade_buffer)
             self.buy_level = trade_levels["buy_level"]
             self.sell_level = trade_levels["sell_level"]
-        if not self.trade_flag:
-            if (self.buy_level >= spx_current_data['High'] >= self.sell_level) or (
-                self.buy_level >= spx_current_data['Low'] >= self.sell_level):
-                self.trade_flag = True
-        if self.position==2 and spx_current_data['Low']<self.sell_level:
-            trade_logger(datetime.datetime.now(),"long-exit",self.buy_level)
+        if not self.trade_flag and (self.buy_level >= spx_current_data['High'] >= self.sell_level) or (
+            self.buy_level >= spx_current_data['Low'] >= self.sell_level):
+            self.trade_flag = True
+
+        if self.position==2 and spx_current_data['High']>self.trade_price+self.lot_1_exit_buffer:
+            trade_logger(datetime.datetime.now(),"partial-long-exit",spx_current_data['High'])
+            self.send_alert(alert_type =  'partial_exit_long')
+            self.trade_price = spx_current_data['High']
+            self.position = config["position"]=1     
+            self.update_config(config)
+        elif self.position>0 and spx_current_data['Low']<self.sell_level:
+            trade_logger(datetime.datetime.now(),"long-exit",spx_current_data['Low'])
             self.send_alert(alert_type =  'exit_long')
-            self.position = 0
-        elif self.position==-2 and spx_current_data['High']<self.buy_level:
-            trade_logger(datetime.datetime.now(),"short-exit",self.buy_level)
+            self.trade_price = spx_current_data['Low']
+            self.position = config["position"]=0
+            self.update_config(config)
+        elif self.position==-2 and spx_current_data['Low']<self.sell_level-self.lot_1_exit_buffer:
+            trade_logger(datetime.datetime.now(),"partial_exit_short",spx_current_data['Low'])
+            self.send_alert(alert_type =  'partial_exit_short')
+            self.trade_price = spx_current_data['Low']
+            self.position =config["position"]= -1
+            self.update_config(config)
+        elif self.position<0 and spx_current_data['High']>self.buy_level:
+            trade_logger(datetime.datetime.now(),"short-exit",spx_current_data['High'])
             self.send_alert(alert_type =  'exit_short')
-            self.position = 0
+            self.trade_price = spx_current_data['High']
+            self.position = config["position"]=0
+            self.update_config(config)
         elif not self.position and self.trade_flag and spx_current_data['High']>= self.buy_level:
             trade_logger(datetime.datetime.now(),"long-entry",self.buy_level)
             self.send_alert(alert_type =  'initial_long_entry')
-            self.position=2
+            self.trade_price = self.buy_level
+            self.position=config["position"]=2
+            self.update_config(config)
         elif not self.position and self.trade_flag and spx_current_data['Low']<= self.sell_level:
             trade_logger(datetime.datetime.now(),"short-entry",self.sell_level)
             self.send_alert(alert_type = 'initial_short_entry')
-            if config["real_trade_flag"]:
-                order_id = kite.place_order(exchange="NFO",
-                                            tradingsymbol="NIFTY18FEBFUT",
-                                            transaction_type="BUY",
-                                            quantity="75",
-                                            product="NRML",
-                                            order_type="LIMIT",
-                                            validity="DAY",
-                                            price = "10366",
-                                            variety="regular")
-            self.position=-2
+            self.trade_price = self.sell_level
+            self.position=config["position"]=-2
+            self.update_config(config)
 
-    def get_nifty_fut_symbol():
-        instruments = kite.instruments(exchange = "NFO")
+    def update_config(self,dict):
+        with open("config.json","w") as file:
+            json.dump(dict,file)
+
 
     def run_every_minute(self): 
         #get current spx data

@@ -7,10 +7,10 @@ import datetime
 logging.basicConfig(level=logging.DEBUG)
 
 #automate login later
-kite = KiteConnect(api_key="your_api_key")
+#kite = KiteConnect(api_key="your_api_key")
 
-data = kite.generate_session("request_token_here", api_secret="your_secret")
-kite.set_access_token(data["access_token"])
+#data = kite.generate_session("request_token_here", api_secret="your_secret")
+#kite.set_access_token(data["access_token"])
 
 print(datetime.datetime.now())
 
