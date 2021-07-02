@@ -28,9 +28,9 @@ def get_nifty_spot_data():
 
 def get_historical_data():
     try:
-        start = str((datetime.now().date()-timedelta(days = 60)))
+        start = str((datetime.datetime.now().date()-timedelta(days = 60)))
         #end = str(datetime.now(est).date().date())
-        yesterday = str((datetime.now().date()-timedelta(days = 1)))
+        yesterday = str((datetime.datetime.now().date()-timedelta(days = 1)))
         data = yf.download("^NSEI", start=start, end=yesterday)
         return data
         
