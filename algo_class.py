@@ -30,7 +30,7 @@ class ema_algo():
         self.trade_flag = False
         self.buy_level = 0
         self.sell_level = 0
-        self.trade_price = 0
+        self.trade_price = config["trade_price"]
         self.lot_1_exit_buffer = config["first_lot_exit"]
         self.position = config["position"]
         self.spx_current_data = None
@@ -51,37 +51,37 @@ class ema_algo():
         if self.position==2 and self.spx_current_data['High']>self.trade_price+self.lot_1_exit_buffer:
             trade_logger(datetime.datetime.now(),"partial-long-exit",self.spx_current_data['High'])
             self.send_alert(alert_type =  'partial_exit_long')
-            self.trade_price = self.spx_current_data['High']
+            self.trade_price =config["trade_price"] =self.spx_current_data['High']
             self.position = config["position"]=1     
             self.update_config(config)
         elif self.position>0 and self.spx_current_data['Low']<self.sell_level:
             trade_logger(datetime.datetime.now(),"long-exit",self.spx_current_data['Low'])
             self.send_alert(alert_type =  'exit_long')
-            self.trade_price = self.spx_current_data['Low']
+            self.trade_price = config["trade_price"]=self.spx_current_data['Low']
             self.position = config["position"]=0
             self.update_config(config)
         elif self.position==-2 and self.spx_current_data['Low']<self.sell_level-self.lot_1_exit_buffer:
             trade_logger(datetime.datetime.now(),"partial_exit_short",self.spx_current_data['Low'])
             self.send_alert(alert_type =  'partial_exit_short')
-            self.trade_price = self.spx_current_data['Low']
+            self.trade_price = config["trade_price"] = self.spx_current_data['Low']
             self.position =config["position"]= -1
             self.update_config(config)
         elif self.position<0 and self.spx_current_data['High']>self.buy_level:
             trade_logger(datetime.datetime.now(),"short-exit",self.spx_current_data['High'])
             self.send_alert(alert_type =  'exit_short')
-            self.trade_price = self.spx_current_data['High']
+            self.trade_price = config["trade_price"] = self.spx_current_data['High']
             self.position = config["position"]=0
             self.update_config(config)
         elif not self.position and self.trade_flag and self.spx_current_data['High']>= self.buy_level:
             trade_logger(datetime.datetime.now(),"long-entry",self.buy_level)
             self.send_alert(alert_type =  'initial_long_entry')
-            self.trade_price = self.buy_level
+            self.trade_price = config["trade_price"] =self.buy_level
             self.position=config["position"]=2
             self.update_config(config)
         elif not self.position and self.trade_flag and self.spx_current_data['Low']<= self.sell_level:
             trade_logger(datetime.datetime.now(),"short-entry",self.sell_level)
             self.send_alert(alert_type = 'initial_short_entry')
-            self.trade_price = self.sell_level
+            self.trade_price = config["trade_price"] =self.sell_level
             self.position=config["position"]=-2
             self.update_config(config)
 
