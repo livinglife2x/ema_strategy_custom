@@ -1,5 +1,1 @@
-{"place_order_flag":false,   
-"position":0,
-"trade_buffer":10,
-"first_lot_exit":50
-}
+{"place_order_flag": false, "position": -2, "trade_buffer": 10, "first_lot_exit": 50}
