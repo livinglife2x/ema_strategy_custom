@@ -9,4 +9,5 @@ The exit is not static...it gets updated along with MA
 2. For entry exits on n+1 day Calculate buffer ema_level_nth_day+x/ema_level_nth_day-x.... 
 3. ema_level_nth_day+x is for buy and ema_level_nth_day-x is for sell. The price has to open between the buffer zone for the entry/exits to be valid.
 4. if algo generated a position (buy/sell)..the exit price would be the rolling buffer level. If the position is long then the exit is when the price hits sell level on any given day.
+5. Position Sizing..enter with 2x lots/positions.exit 1x on partial profit (x pips for forex, x points or ATR for index/stocks) exit the second lot/positions at exit.
 
